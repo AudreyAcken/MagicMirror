@@ -1,5 +1,7 @@
 from tkinter import *
 import time
+import urllib.request
+from bs4 import BeautifulSoup 
 
 master = Tk()
 
@@ -55,7 +57,33 @@ tick1()
 
 
 
+#Weather
 
+city = "MountainView"
+state = "CA"
+zip_code = "94040"
+country = "US"
+
+ten_day = "https://weather.com/weather/tenday/l/" + city + "+" + state + "+" + zip_code + ":4:" + country
+
+right_now = "https://weather.com/weather/today/l/" + city + "+" + state + "+" + zip_code + ":4:" + country
+
+page = urllib.request.urlopen(ten_day)
+
+soup = BeautifulSoup(page, "html.parser")
+
+main_container = soup.find_all('td', {"class" : "description"})
+second_container = main_container[0].find_all('span')
+print(second_container)
+weather_string = str(second_container[0])
+print(weather_string)
+print(type(weather_string))
+weather_re= re.match(r'(.*>)(.*)(<.*>)', weather_string)
+weather_re1 = weather_re.group(2)
+
+weather_text = Label(w, font=('sans-serif', 40), width=44, fg='white', bg="black", anchor=W, justify=LEFT)
+weather_text.config(text=weather_re1)
+weather_text.pack()
 
 
 mainloop()
