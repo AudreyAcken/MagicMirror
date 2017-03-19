@@ -4,6 +4,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 from subprocess import call
 from PIL import ImageTk, Image
+import threading
 
 master = Tk()
 
@@ -73,31 +74,8 @@ tick()
 
 #Weather
 
-city = "MountainView"
-state = "CA"
-zip_code = "94040"
-country = "US"
-
-ten_day = "https://weather.com/weather/tenday/l/" + city + "+" + state + "+" + zip_code + ":4:" + country
-
-right_now = "https://weather.com/weather/today/l/" + city + "+" + state + "+" + zip_code + ":4:" + country
-
-page = urllib.request.urlopen(ten_day)
-
-soup = BeautifulSoup(page, "html.parser")
-
-main_container = soup.find_all('td', {"class" : "description"})
-second_container = main_container[0].find_all('span')
-print(second_container)
-weather_string = str(second_container[0])
-print(weather_string)
-print(type(weather_string))
-weather_re= re.match(r'(.*>)(.*)(<.*>)', weather_string)
-weather_re1 = weather_re.group(2)
 
 weather_text = Label(w, font=('sans-serif', 40), width=44, fg='white', bg="black", anchor=W, justify=LEFT)
-
-weather_text.config(text=weather_re1)#weather_text.pack()
 
 flagClock = False
 def toggleTime(event):
@@ -119,6 +97,38 @@ def toggleWeather(event):
         weather_text.grid_forget()
         flagWeather = False
     else:
+        
+        city = "MountainView"
+        state = "CA"
+        zip_code = "94040"
+        country = "US"
+
+        ten_day = "https://weather.com/weather/tenday/l/" + city + "+" + state + "+" + zip_code + ":4:" + country
+
+        right_now = "https://weather.com/weather/today/l/" + city + "+" + state + "+" + zip_code + ":4:" + country
+
+        page = urllib.request.urlopen(ten_day)
+
+        soup = BeautifulSoup(page, "html.parser")
+
+        main_container = soup.find_all('td', {"class" : "description"})
+        if (len(main_container)<1):
+            weather_re1 = "Sorry, the weather can not be found at this moment"
+
+        else: 
+        
+            second_container = main_container[0].find_all('span')
+            if (len(second_container)<1):
+                weather_re1 = "error 404"
+            else:
+            
+                weather_string = str(second_container[0])
+            
+                weather_re= re.match(r'(.*>)(.*)(<.*>)', weather_string)
+                weather_re1 = weather_re.group(2)
+                
+        weather_text.config(text=weather_re1)
+        
         weather_text.grid(row=2,column=0,sticky='w')
         flagWeather = True
         
@@ -335,13 +345,26 @@ picturegap = Label(text="                                                       
 
 picture1 = None        
 picture = None
+
+pictureFlag = False
+def pictureoff():
+    global picture, picture1, pictureFlag
+    picture1.grid_forget()
+    pictureFlag = False
+
 def togglePicture(event):
-    global picture, picture1
-    picturegap.grid(row=43, column=0, ipadx=5, ipady=5)
-    takepic = call(["fswebcam", "-p", "YUYV", "-d", "/dev/video0", "--no-banner", "-r", "640x480", "image.jpg"])
-    picture = ImageTk.PhotoImage(Image.open("image.jpg"))
-    picture1 = Label(image=picture)
-    picture1.grid(row=43, column=1, ipadx=5, ipady=5)
+    global picture, picture1, pictureFlag
+    if pictureFlag:
+        pictureoff()
+
+    else:
+        picturegap.grid(row=43, column=0, ipadx=5, ipady=5)
+        takepic = call(["fswebcam", "-p", "YUYV", "-d", "/dev/video0", "--no-banner", "-r", "640x480", "image.jpg"])
+        picture = ImageTk.PhotoImage(Image.open("image.jpg"))
+        picture1 = Label(image=picture)
+        picture1.grid(row=43, column=1, ipadx=5, ipady=5)
+        pictureFlag = True
+        threading.Timer(5.0, pictureoff).start()
 
 
 master.bind('1', toggleTime)
