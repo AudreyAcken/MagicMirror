@@ -2,7 +2,8 @@ from tkinter import *
 import time
 import urllib.request
 from bs4 import BeautifulSoup
-
+from subprocess import call
+from PIL import ImageTk, Image
 
 master = Tk()
 
@@ -327,9 +328,24 @@ def toggleStem(event):
         photo1.grid(row=42, column=0, sticky='w', ipadx=5, ipady=5)
 
         flagSTEM = True
-        
+
+#Image taking picture
+
+picturegap = Label(text="                                                         ", fg="black", bg="black")
+
+picture1 = None        
+picture = None
+def togglePicture(event):
+    global picture, picture1
+    picturegap.grid(row=43, column=0, ipadx=5, ipady=5)
+    takepic = call(["fswebcam", "-p", "YUYV", "-d", "/dev/video0", "--no-banner", "-r", "640x480", "image.jpg"])
+    picture = ImageTk.PhotoImage(Image.open("image.jpg"))
+    picture1 = Label(image=picture)
+    picture1.grid(row=43, column=1, ipadx=5, ipady=5)
+
 
 master.bind('1', toggleTime)
 master.bind('2', toggleWeather)
 master.bind('3', toggleStem)
+master.bind('4', togglePicture)
 mainloop()
